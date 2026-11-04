@@ -24,8 +24,8 @@ yarn-error.log*
 *.log
 
 # Generated PDF reports storage
-storage/reports/*.pdf
-!storage/reports/.gitkeep
+**/storage/reports/*.pdf
+!**/storage/reports/.gitkeep
 
 # IDE and Editor files
 .vscode/
