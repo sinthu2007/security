@@ -1,0 +1,90 @@
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: aegisguard-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: aegisguard_security
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - aegisguard-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Distributed Job Queue Broker
+  redis:
+    image: redis:7.2-alpine
+    container_name: aegisguard-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aegisguard-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend REST API and Security Engine
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aegisguard-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      CLIENT_URL: http://localhost:80
+      MONGODB_URI: mongodb://mongodb:27017/aegisguard_security
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: production-super-secret-jwt-key-aegisguard-2025
+      JWT_EXPIRES_IN: 7d
+      ADMIN_EMAIL: admin@aegisguard.security
+      ADMIN_PASSWORD: Admin@Security2025!
+      ADMIN_NAME: Security Operations Center Admin
+      SCAN_CONCURRENCY: 3
+    volumes:
+      - reports_storage:/app/storage/reports
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - aegisguard-network
+
+  # Frontend Web UI
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aegisguard-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - aegisguard-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+  reports_storage:
+
+networks:
+  aegisguard-network:
+    driver: bridge
