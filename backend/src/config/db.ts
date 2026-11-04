@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import { env } from './env';
 import { logger } from '../utils/logger';
 
+let mongodInstance: any = null;
+
 export const connectDB = async (): Promise<void> => {
   try {
     mongoose.set('strictQuery', false);
@@ -20,8 +22,10 @@ export const connectDB = async (): Promise<void> => {
       logger.info('Development mode detected: Initializing in-memory MongoDB fallback...');
       try {
         const { MongoMemoryServer } = await import('mongodb-memory-server');
-        const mongod = await MongoMemoryServer.create();
-        const memoryUri = mongod.getUri();
+        if (!mongodInstance) {
+          mongodInstance = await MongoMemoryServer.create();
+        }
+        const memoryUri = mongodInstance.getUri();
         logger.info(`In-memory MongoDB started at: ${memoryUri}`);
         await mongoose.connect(memoryUri);
         logger.info('Connected to In-memory MongoDB for zero-configuration local development');
