@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only --exit-child src/server.ts",
-    "test": "ts-node src/tests/runTests.ts"
+    "test": "ts-node src/tests/runTests.ts",
+    "test:audit": "ts-node src/tests/e2eAudit.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
