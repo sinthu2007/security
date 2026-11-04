@@ -321,3 +321,5 @@ AegisGuard conducts **purely passive, non-invasive observations** based strictly
 
 ## 10. License
 Academic SaaS Engineering Project. Developed under the MIT License.
+#   s e c u r i t y  
+ 
